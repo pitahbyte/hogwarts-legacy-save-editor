@@ -2,7 +2,7 @@
 import Dropdown from 'primevue/dropdown';
 import FeatureRow from '@/components/FeatureRow.vue';
 import type { HogwartsDB } from '@/lib/HogwartsDB';
-import { nextTick, type PropType } from 'vue';
+import { computed, nextTick, type PropType } from 'vue';
 import { ref } from 'vue';
 import { downloadObjectAsJson } from '@/lib/utils';
 import Toolbar from 'primevue/toolbar';
@@ -139,6 +139,10 @@ function saveChanges() {
   setAppearance();
 }
 
+const hasFeatures = computed(() => {
+  return Object.keys(features.value).length > 0;
+});
+
 defineExpose({
   refresh,
 });
@@ -146,11 +150,11 @@ defineExpose({
 
 <template>
   <div class="grid">
-    <div class="card col">
+    <div class="col">
       <Toolbar>
         <template #start>
-          <Button @click="exportValues">
-            <i class="pi pi-download mr-2"></i>Export</Button
+          <Button @click="exportValues" class="mr-2">
+            <i class="pi pi-upload mr-2"></i>Export</Button
           >
           <FileUpload
             mode="basic"
@@ -159,17 +163,17 @@ defineExpose({
             @uploader="importValues"
             customUpload
             chooseLabel="Import"
+            chooseIcon="pi pi-download"
+            uploadIcon="pi pi-download"
           />
         </template>
       </Toolbar>
-      <div class="features-container">
-        <h2>
+      <div class="features-container mt-3">
+        <h2 class="mb-2">
           Features
           <small class="text-xs"><i>AvatarFullBodyPresetsDynamic</i></small>
         </h2>
-        <span v-if="!Object.keys(features).length"
-          ><i>No features to show</i></span
-        >
+        <span v-if="!hasFeatures"><i>No features to show</i></span>
         <FeatureRow
           v-for="(value, key) in features"
           :key="key"
@@ -177,15 +181,20 @@ defineExpose({
           :feature="value"
           @value-changed="handleChange"
         ></FeatureRow>
-        <Button @click="saveChanges" :disabled="!dirtyFeatures">Save</Button>
+        <Button
+          v-if="hasFeatures"
+          @click="saveChanges"
+          :disabled="!dirtyFeatures"
+          >Save</Button
+        >
       </div>
 
-      <div class="gender-container grid">
+      <div class="gender-container grid mt-3">
         <div class="col-4">
           <div class="field">
-            <h3>
+            <h2 class="mb-2">
               Gender <small class="text-xs"><i>MiscDataDynamic</i></small>
-            </h3>
+            </h2>
             <Dropdown
               v-model="gender"
               :options="genderOptions"

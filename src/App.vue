@@ -2,8 +2,8 @@
 import AppearanceTab from '@/components/AppearanceTab.vue';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
-import TabView from 'primevue/tabview';
-import TabPanel from 'primevue/tabpanel';
+// import TabView from 'primevue/tabview';
+// import TabPanel from 'primevue/tabpanel';
 import SaveFile from '@/lib/SaveFile.js';
 import HogwartsDB from '@/lib/HogwartsDB';
 import { nextTick, ref } from 'vue';
@@ -84,37 +84,48 @@ function downloadSaveFile() {
   <main class="app grid-nogutter">
     <div class="col">
       <nav class="col-12 grid">
-        <div class="col-2">
+        <div class="col-12 sm:col-6 sm:text-left flex">
           <FileUpload
+            class="mr-2"
             mode="basic"
             name="saveFile"
             auto
             @uploader="openSaveFile"
             customUpload
-            chooseLabel="Browse"
+            chooseLabel="Open Save File"
           />
-        </div>
-        <div class="col-2 col-offset-8">
-          <Button @click="refresh" class="mr-2"
-            ><i class="pi pi-refresh"></i
-          ></Button>
-          <Button @click="downloadSaveFile"
-            ><i class="pi pi-download"></i>
+          <Button
+            @click="downloadSaveFile"
+            v-tooltip.bottom="'Download Save File'"
+            :disabled="!isFileLoaded"
+            ><i class="pi pi-download mr-2"></i>
+            Download Save File
           </Button>
         </div>
+        <div class="col-12 sm:col-2 sm:col-offset-4 text-center sm:text-right">
+          <Button
+            @click="refresh"
+            class="mr-2"
+            v-tooltip.bottom="'Refresh'"
+            :disabled="!isFileLoaded"
+            ><i class="pi pi-refresh"></i
+          ></Button>
+        </div>
       </nav>
-      <TabView v-if="isFileLoaded">
-        <TabPanel header="Appearance"
-          ><AppearanceTab
-            ref="appearanceTabRef"
-            :hogwartsDB="hogwartsDB"
-            @loading="setLoading"
-          ></AppearanceTab>
-        </TabPanel>
-      </TabView>
-      <div class="loading-overlay" v-if="fileLoading">
-        <div class="text-center">
-          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+      <div class="content">
+        <AppearanceTab
+          v-if="isFileLoaded"
+          ref="appearanceTabRef"
+          :hogwartsDB="hogwartsDB"
+          @loading="setLoading"
+        ></AppearanceTab>
+        <!-- <TabView v-if="isFileLoaded">
+          <TabPanel header="Appearance"> </TabPanel>
+        </TabView> -->
+        <div class="loading-overlay" v-if="fileLoading">
+          <div class="text-center">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -132,5 +143,53 @@ function downloadSaveFile() {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.content {
+  padding: 2rem;
+}
+</style>
+
+<style lang="scss">
+@import 'primevue/resources/themes/saga-blue/theme.css'; //theme
+@import 'primevue/resources/primevue.min.css'; //core css
+@import 'primeicons/primeicons.css'; //icons
+@import 'primeflex/primeflex.scss';
+
+.p-button {
+  max-height: 34px;
+  font-size: 0.8rem;
+  .p-button-label {
+    font-size: 0.8rem;
+  }
+}
+
+.p-dropdown {
+  max-height: 34px;
+
+  .pi {
+    font-size: 0.875rem;
+  }
+}
+
+.p-dropdown .p-dropdown-label,
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.p-dropdown-panel .p-dropdown-items {
+  padding: 0.25rem 0;
+
+  .p-dropdown-item:last-of-type {
+    padding-bottom: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .p-toolbar {
+    background-color: var(--vt-c-black-soft);
+    border-color: var(--vt-c-divider-dark-2);
+  }
 }
 </style>
