@@ -12,9 +12,9 @@ interface DropdownOption {
   value: string;
 }
 
-const saveFile = ref();
+const saveFile = ref<SaveFile>();
 
-const hogwartsDB = ref();
+const hogwartsDB = ref<HogwartsDB>();
 
 const genderOptions: DropdownOption[] = [
   {
@@ -37,7 +37,7 @@ function updateGender() {
   }
   loading.value = true;
   setTimeout(() => {
-    const currentGender = hogwartsDB.value.getGenderSimple().toLowerCase();
+    const currentGender = hogwartsDB.value!.getGenderSimple().toLowerCase();
     gender.value = genderOptions.find(({ value }: DropdownOption) => {
       return value === currentGender;
     });
@@ -53,7 +53,7 @@ function changeGender() {
   if (hogwartsDB.value && gender.value) {
     loading.value = true;
     setTimeout(() => {
-      hogwartsDB.value.setGender(gender.value?.value);
+      hogwartsDB.value?.setGender(gender.value?.value);
       loading.value = false;
     }, 500);
   }
@@ -76,10 +76,35 @@ function openSaveFile({ files }: { files: File[] }) {
     }
   };
 }
+
+function promptDownload(
+  byteArray: Uint8Array,
+  fileName: string,
+  type: string = 'application/octet-stream'
+) {
+  const blob = new Blob([byteArray], { type });
+  const url = URL.createObjectURL(blob);
+  const anchorTag = document.createElement('a');
+  anchorTag.href = url;
+  anchorTag.download = fileName;
+  document.body.appendChild(anchorTag);
+  anchorTag.style.display = 'none';
+  anchorTag.click();
+  anchorTag.remove();
+}
+
+function downloadSaveFile() {
+  if (saveFile.value && hogwartsDB.value) {
+    const dbByteArray = saveFile.value.generateSaveFile(
+      hogwartsDB.value.getDBBytes()
+    );
+    promptDownload(dbByteArray, 'hlsave.sav');
+  }
+}
 </script>
 
 <template>
-  <main>
+  <main class="grid">
     <FileUpload
       mode="basic"
       name="saveFile"
@@ -88,7 +113,8 @@ function openSaveFile({ files }: { files: File[] }) {
       customUpload
       chooseLabel="Browse"
     />
-    <Button @click="refresh">Refresh</Button>
+    <Button @click="refresh"><i class="pi pi-refresh"></i></Button>
+    <Button @click="downloadSaveFile">Download</Button>
     <Dropdown
       v-model="gender"
       :options="genderOptions"

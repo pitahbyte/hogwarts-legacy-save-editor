@@ -47,7 +47,11 @@ export class HogwartsDB {
     return genderRig.DataValue;
   }
 
-  setGender(gender: 'male' | 'female') {
+  setGender(gender?: string) {
+    if (!gender) {
+      return;
+    }
+
     const g = gender.toLowerCase();
     this.database.exec(
       `UPDATE ${Tables.Misc} SET DataValue = $gender WHERE DataName = "GenderRig" or DataName = "GenderVoice"`,
@@ -59,6 +63,10 @@ export class HogwartsDB {
       `UPDATE ${Tables.Misc} SET DataValue = $pronoun WHERE DataName = "GenderPronoun"`,
       { $pronoun: g === 'male' ? 'Wizard' : 'Witch' }
     );
+  }
+
+  getDBBytes() {
+    return this.database.export();
   }
 }
 
