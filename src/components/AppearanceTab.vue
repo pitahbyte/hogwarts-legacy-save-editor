@@ -2,7 +2,7 @@
 import Dropdown from 'primevue/dropdown';
 import FeatureRow from '@/components/FeatureRow.vue';
 import type { HogwartsDB } from '@/lib/HogwartsDB';
-import type { PropType } from 'vue';
+import { nextTick, type PropType } from 'vue';
 import { ref } from 'vue';
 import { downloadObjectAsJson } from '@/lib/utils';
 import Toolbar from 'primevue/toolbar';
@@ -37,15 +37,17 @@ const genderOptions: DropdownOption[] = [
 
 const features = ref<Record<string, string>>({});
 
-function loadingWrapper(callback: (...args: any[]) => void) {
+const dirtyFeatures = ref(false);
+
+function loadingWrapper(callback: (...args: any[]) => void | Promise<void>) {
   if (!props.hogwartsDB) {
     return;
   }
 
   return new Promise<void>((resolve) => {
     emit('loading', true);
-    setTimeout(() => {
-      callback();
+    setTimeout(async () => {
+      await callback();
       emit('loading', false);
       resolve();
     }, 500);
@@ -53,18 +55,25 @@ function loadingWrapper(callback: (...args: any[]) => void) {
 }
 
 function getAppearance() {
-  loadingWrapper(() => {
+  loadingWrapper(async () => {
     const appearances = props.hogwartsDB!.getAppearance();
+    features.value = {};
+    await nextTick();
     features.value = appearances;
+    dirtyFeatures.value = false;
+  });
+}
+
+function getGenderOption(g: string) {
+  return genderOptions.find(({ value }: DropdownOption) => {
+    return value === g;
   });
 }
 
 function getGender() {
   loadingWrapper(() => {
     const currentGender = props.hogwartsDB!.getGenderSimple().toLowerCase();
-    gender.value = genderOptions.find(({ value }: DropdownOption) => {
-      return value === currentGender;
-    });
+    gender.value = getGenderOption(currentGender);
   });
 }
 
@@ -84,7 +93,7 @@ function setAppearance() {
 
 function handleChange({ key, value }: { key: string; value: string }) {
   console.log({ key, value });
-  // features[key] = value;
+  dirtyFeatures.value = true;
   features.value[key] = value;
 }
 
@@ -96,13 +105,39 @@ function refresh() {
 function exportValues() {
   const obj = {
     features: features.value,
-    gender: props.hogwartsDB!.getGender(),
+    gender: props.hogwartsDB?.getGenderSimple(),
   };
 
   downloadObjectAsJson(obj, 'appearance');
 }
 
-function importValues() {}
+function importValues({ files }: { files: File[] }) {
+  const [file] = files;
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    if (!event.target) {
+      return;
+    }
+    try {
+      const obj = JSON.parse(event.target.result!.toString());
+      const { features: f, gender: g } = obj;
+      features.value = {};
+      await nextTick();
+      features.value = f;
+      gender.value = getGenderOption(g.toLowerCase());
+
+      setAppearance();
+      changeGender();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function saveChanges() {
+  setAppearance();
+}
 
 defineExpose({
   refresh,
@@ -142,9 +177,8 @@ defineExpose({
           :feature="value"
           @value-changed="handleChange"
         ></FeatureRow>
+        <Button @click="saveChanges" :disabled="!dirtyFeatures">Save</Button>
       </div>
-
-      <button @click="setAppearance">setAppearance</button>
 
       <div class="gender-container grid">
         <div class="col-4">

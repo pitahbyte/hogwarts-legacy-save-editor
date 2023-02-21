@@ -16,5 +16,6 @@ module.exports = {
     'prettier/prettier': ['error', { singleQuote: true }],
     'no-var': 'error',
     'prefer-const': 'error',
+    'no-debugger': 'warn',
   },
 };
