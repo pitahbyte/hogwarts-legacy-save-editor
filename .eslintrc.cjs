@@ -8,11 +8,14 @@ module.exports = {
     'eslint:recommended',
     '@vue/eslint-config-typescript',
     '@vue/eslint-config-prettier',
+    'plugin:vue-pug/vue3-recommended',
   ],
   parserOptions: {
     ecmaVersion: 'latest',
   },
   rules: {
     'prettier/prettier': ['error', { singleQuote: true }],
-  },
+    'no-var': 'error',
+    'prefer-const': 'error',
+  }
 };
