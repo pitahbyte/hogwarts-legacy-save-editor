@@ -1,53 +1,48 @@
 <script setup lang="ts">
-import HelloWorld from "./components/HelloWorld.vue";
-import TheWelcome from "./components/TheWelcome.vue";
+// import TheWelcome from './components/TheWelcome.vue';
+import FileUpload from 'primevue/fileupload';
+import SaveFile from '@/lib/SaveFile.js';
+import HogwartsDB from '@/lib/HogwartsDB';
+import { ref } from 'vue';
+
+const saveFile = ref();
+
+const hogwartsDB = ref();
+
+function uploadSaveFile({ files }: { files: File[] }) {
+  const [myFile] = files;
+
+  const reader = new FileReader();
+  // const fileByteArray = [];
+  reader.readAsArrayBuffer(myFile);
+  reader.onloadend = function (evt) {
+    if (!evt.target) {
+      return;
+    }
+
+    if (evt.target.readyState == FileReader.DONE) {
+      const arrayBuffer = evt.target.result;
+      saveFile.value = new SaveFile(arrayBuffer);
+      hogwartsDB.value = new HogwartsDB(saveFile.value.primaryDB.slice());
+      // console.log(hog);
+      // hog.setGender('female');
+      // console.log(hog.getGender());
+    }
+  };
+}
 </script>
 
 <template>
-  <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="./assets/logo.svg"
-      width="125"
-      height="125"
-    />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
   <main>
-    <TheWelcome />
+    <FileUpload
+      mode="basic"
+      name="saveFile"
+      auto
+      @uploader="uploadSaveFile"
+      customUpload
+    >
+    </FileUpload>
   </main>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+<style module lang="scss"></style>
