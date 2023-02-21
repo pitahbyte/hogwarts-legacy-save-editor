@@ -1,70 +1,34 @@
 <script setup lang="ts">
-// import TheWelcome from './components/TheWelcome.vue';
+import AppearanceTab from '@/components/AppearanceTab.vue';
 import FileUpload from 'primevue/fileupload';
-import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
 import SaveFile from '@/lib/SaveFile.js';
 import HogwartsDB from '@/lib/HogwartsDB';
-import { ref } from 'vue';
-
-interface DropdownOption {
-  name: string;
-  value: string;
-}
+import { nextTick, ref } from 'vue';
 
 const saveFile = ref<SaveFile>();
 
 const hogwartsDB = ref<HogwartsDB>();
 
-const genderOptions: DropdownOption[] = [
-  {
-    name: 'Male',
-    value: 'male',
-  },
-  {
-    name: 'Female',
-    value: 'female',
-  },
-];
+const appearanceTabRef = ref<InstanceType<typeof AppearanceTab> | null>(null);
 
-const gender = ref<DropdownOption>();
+const isFileLoaded = ref(false);
 
-const loading = ref(false);
-
-function updateGender() {
-  if (!hogwartsDB.value) {
-    return;
-  }
-  loading.value = true;
-  setTimeout(() => {
-    const currentGender = hogwartsDB.value!.getGenderSimple().toLowerCase();
-    gender.value = genderOptions.find(({ value }: DropdownOption) => {
-      return value === currentGender;
-    });
-    loading.value = false;
-  }, 500);
-}
+const fileLoading = ref(false);
 
 function refresh() {
-  updateGender();
-}
-
-function changeGender() {
-  if (hogwartsDB.value && gender.value) {
-    loading.value = true;
-    setTimeout(() => {
-      hogwartsDB.value?.setGender(gender.value?.value);
-      loading.value = false;
-    }, 500);
-  }
+  appearanceTabRef.value?.updateGender();
 }
 
 function openSaveFile({ files }: { files: File[] }) {
   const [myFile] = files;
+  fileLoading.value = true;
 
   const reader = new FileReader();
   reader.readAsArrayBuffer(myFile);
-  reader.onloadend = function (evt) {
+  reader.onloadend = async function (evt) {
     if (!evt.target) {
       return;
     }
@@ -72,8 +36,16 @@ function openSaveFile({ files }: { files: File[] }) {
       const arrayBuffer = evt.target.result;
       saveFile.value = new SaveFile(arrayBuffer);
       hogwartsDB.value = new HogwartsDB(saveFile.value.primaryDB.slice());
-      updateGender();
+      isFileLoaded.value = true;
+      await nextTick();
+      setTimeout(() => {
+        fileLoading.value = false;
+      }, 500);
+      refresh();
     }
+  };
+  reader.onerror = () => {
+    fileLoading.value = false;
   };
 }
 
@@ -104,27 +76,55 @@ function downloadSaveFile() {
 </script>
 
 <template>
-  <main class="grid">
-    <FileUpload
-      mode="basic"
-      name="saveFile"
-      auto
-      @uploader="openSaveFile"
-      customUpload
-      chooseLabel="Browse"
-    />
-    <Button @click="refresh"><i class="pi pi-refresh"></i></Button>
-    <Button @click="downloadSaveFile">Download</Button>
-    <Dropdown
-      v-model="gender"
-      :options="genderOptions"
-      optionLabel="name"
-      placeholder="Not selected"
-      :loading="loading"
-      :disabled="!hogwartsDB"
-      @change="changeGender"
-    />
+  <main class="app grid">
+    <div class="col">
+      <nav class="col-12 grid">
+        <div class="col-2">
+          <FileUpload
+            mode="basic"
+            name="saveFile"
+            auto
+            @uploader="openSaveFile"
+            customUpload
+            chooseLabel="Browse"
+          />
+        </div>
+        <div class="col-2 col-offset-8">
+          <Button @click="refresh" class="mr-2"
+            ><i class="pi pi-refresh"></i
+          ></Button>
+          <Button @click="downloadSaveFile"
+            ><i class="pi pi-download"></i>
+          </Button>
+        </div>
+      </nav>
+      <TabView v-if="isFileLoaded && !fileLoading">
+        <TabPanel header="Appearance"
+          ><AppearanceTab
+            ref="appearanceTabRef"
+            :hogwartsDB="hogwartsDB"
+          ></AppearanceTab>
+        </TabPanel>
+      </TabView>
+      <div class="loading-overlay" v-if="fileLoading">
+        <div class="text-center">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
-<style module lang="scss"></style>
+<style scoped lang="scss">
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
