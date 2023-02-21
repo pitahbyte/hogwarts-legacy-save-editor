@@ -42,6 +42,11 @@ export class HogwartsDB {
       : [];
   }
 
+  getGenderSimple(): string {
+    const [genderRig] = this.getGender();
+    return genderRig.DataValue;
+  }
+
   setGender(gender: 'male' | 'female') {
     const g = gender.toLowerCase();
     this.database.exec(
