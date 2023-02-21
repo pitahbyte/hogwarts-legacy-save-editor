@@ -12,11 +12,6 @@ interface Misc {
   DataValue: string;
 }
 
-export interface Feature {
-  name: string;
-  value: string;
-}
-
 const Tables = {
   Misc: 'MiscDataDynamic',
   Avatar: 'AvatarFullBodyDynamic',
@@ -32,24 +27,27 @@ export class HogwartsDB {
     this.database = new Sql.Database(this.byteArray.slice());
   }
 
-  getGender(): Misc[] {
-    const g = this.database.exec(
+  getGender(): Record<string, string> {
+    const [result] = this.database.exec(
       'SELECT DataName, DataValue FROM MiscDataDynamic WHERE DataName like "%Gender%"'
     );
-    return g.length
-      ? g[0].values.map((values: SqlValue[]) => {
-          const [name, value] = values;
-          return {
-            DataName: name as string,
-            DataValue: value as string,
-          };
-        })
-      : [];
+    return result.values.reduce(
+      (obj: Record<string, string>, values: SqlValue[]) => {
+        const [name, value] = values;
+
+        if (name && value) {
+          obj[name.toString()] = value.toString();
+        }
+
+        return obj;
+      },
+      {}
+    );
   }
 
   getGenderSimple(): string {
-    const [genderRig] = this.getGender();
-    return genderRig.DataValue;
+    return this.getGender()['GenderRig'];
+    // return genderRig.DataValue;
   }
 
   setGender(gender?: string) {
@@ -70,17 +68,35 @@ export class HogwartsDB {
     );
   }
 
-  getAppearance(): Feature[] {
+  getAppearance(): Record<string, string> {
     const [result] = this.database.exec(
       `SELECT "PresetType", "PresetName" FROM "AvatarFullBodyPresetsDynamic" WHERE "RegistryId" = "Player0"`
     );
     const { values } = result;
-    return values.map((row: SqlValue[]) => {
+    return values.reduce((obj: Record<string, string>, row: SqlValue[]) => {
       const [presetType, presetName] = row;
-      return {
-        name: presetType as string,
-        value: presetName as string,
-      };
+      if (presetType) {
+        obj[presetType.toString()] = presetName!.toString();
+      }
+      return obj;
+    }, {});
+  }
+
+  clearApperanceTable() {
+    this.database.exec(
+      `DELETE FROM "AvatarFullBodyPresetsDynamic" WHERE "RegistryId" = "Player0"`
+    );
+  }
+
+  setAppearance(features: Record<string, string>) {
+    this.clearApperanceTable();
+    const stmnt = this.database.prepare(
+      `INSERT INTO "AvatarFullBodyPresetsDynamic" ('RegistryId', 'PresetType', 'PresetName') VALUES ('Player0', $key, $value)`
+    );
+    Object.keys(features).forEach((key: string) => {
+      const value = features[key];
+      stmnt.bind({ $key: key, $value: value });
+      stmnt.step();
     });
   }
 

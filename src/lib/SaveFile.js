@@ -11,7 +11,8 @@ const ZR = new Uint8Array([71, 86, 65, 83]),
   ]);
 
 class SaveFile {
-  constructor(buffer) {
+  constructor(buffer, fileName) {
+    this.name = fileName;
     this.buffer = buffer;
     this.view = new DataView(this.buffer);
     this.byteArray = new Uint8Array(this.buffer);

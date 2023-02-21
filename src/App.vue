@@ -38,7 +38,7 @@ function openSaveFile({ files }: { files: File[] }) {
     }
     if (evt.target.readyState == FileReader.DONE) {
       const arrayBuffer = evt.target.result;
-      saveFile.value = new SaveFile(arrayBuffer);
+      saveFile.value = new SaveFile(arrayBuffer, myFile.name);
       hogwartsDB.value = new HogwartsDB(saveFile.value.primaryDB.slice());
       isFileLoaded.value = true;
       await nextTick();
@@ -75,7 +75,7 @@ function downloadSaveFile() {
     const dbByteArray = saveFile.value.generateSaveFile(
       hogwartsDB.value.getDBBytes()
     );
-    promptDownload(dbByteArray, 'hlsave.sav');
+    promptDownload(dbByteArray, `${saveFile.value.name}`);
   }
 }
 </script>

@@ -1,20 +1,34 @@
 <script lang="ts">
 import InputText from 'primevue/inputtext';
-import type { Feature } from '@/lib/HogwartsDB';
 
-import { defineComponent, type PropType } from 'vue';
+import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
   components: {
     InputText,
   },
   props: {
+    name: {
+      type: String,
+      required: true,
+    },
     feature: {
-      type: Object as PropType<Feature>,
+      type: String,
       required: true,
     },
   },
-  setup() {},
+  setup(props, ctx) {
+    const value = ref(props.feature);
+
+    function handleChange() {
+      ctx.emit('value-changed', { key: props.name, value: value.value });
+    }
+
+    return {
+      value,
+      handleChange,
+    };
+  },
 });
 </script>
 
@@ -25,7 +39,7 @@ export default defineComponent({
         <span class="p-inputgroup-addon">
           <i class="pi pi-book"></i>
         </span>
-        <InputText :value="feature.name" disabled />
+        <InputText :value="name" disabled />
       </div>
     </div>
     <div class="col-12 md:col-4">
@@ -33,7 +47,7 @@ export default defineComponent({
         <span class="p-inputgroup-addon">
           <i class="pi pi-pencil"></i>
         </span>
-        <InputText :value="feature.value" />
+        <InputText v-model="value" @change="handleChange" />
       </div>
     </div>
     <div class="col-12 md:col-4"></div>
