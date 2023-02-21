@@ -1,6 +1,6 @@
 import sqlWasm from '@/assets/sql-wasm.wasm?url';
 import { capitalize } from '@/lib/utils';
-import initSqlJs from 'sql.js';
+import initSqlJs, { type SqlValue } from 'sql.js';
 
 let Sql: initSqlJs.SqlJsStatic;
 (async () => {
@@ -10,6 +10,11 @@ let Sql: initSqlJs.SqlJsStatic;
 interface Misc {
   DataName: string;
   DataValue: string;
+}
+
+export interface Feature {
+  name: string;
+  value: string;
 }
 
 const Tables = {
@@ -32,7 +37,7 @@ export class HogwartsDB {
       'SELECT DataName, DataValue FROM MiscDataDynamic WHERE DataName like "%Gender%"'
     );
     return g.length
-      ? g[0].values.map((values: initSqlJs.SqlValue[]) => {
+      ? g[0].values.map((values: SqlValue[]) => {
           const [name, value] = values;
           return {
             DataName: name as string,
@@ -63,6 +68,20 @@ export class HogwartsDB {
       `UPDATE ${Tables.Misc} SET DataValue = $pronoun WHERE DataName = "GenderPronoun"`,
       { $pronoun: g === 'male' ? 'Wizard' : 'Witch' }
     );
+  }
+
+  getAppearance(): Feature[] {
+    const [result] = this.database.exec(
+      `SELECT "PresetType", "PresetName" FROM "AvatarFullBodyPresetsDynamic" WHERE "RegistryId" = "Player0"`
+    );
+    const { values } = result;
+    return values.map((row: SqlValue[]) => {
+      const [presetType, presetName] = row;
+      return {
+        name: presetType as string,
+        value: presetName as string,
+      };
+    });
   }
 
   getDBBytes() {

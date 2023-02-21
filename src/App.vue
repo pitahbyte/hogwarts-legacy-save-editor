@@ -19,7 +19,11 @@ const isFileLoaded = ref(false);
 const fileLoading = ref(false);
 
 function refresh() {
-  appearanceTabRef.value?.updateGender();
+  appearanceTabRef.value!.refresh();
+}
+
+function setLoading(value: boolean) {
+  fileLoading.value = value;
 }
 
 function openSaveFile({ files }: { files: File[] }) {
@@ -38,10 +42,11 @@ function openSaveFile({ files }: { files: File[] }) {
       hogwartsDB.value = new HogwartsDB(saveFile.value.primaryDB.slice());
       isFileLoaded.value = true;
       await nextTick();
-      setTimeout(() => {
+      setTimeout(async () => {
         fileLoading.value = false;
+        await nextTick();
+        refresh();
       }, 500);
-      refresh();
     }
   };
   reader.onerror = () => {
@@ -76,7 +81,7 @@ function downloadSaveFile() {
 </script>
 
 <template>
-  <main class="app grid">
+  <main class="app grid-nogutter">
     <div class="col">
       <nav class="col-12 grid">
         <div class="col-2">
@@ -98,11 +103,12 @@ function downloadSaveFile() {
           </Button>
         </div>
       </nav>
-      <TabView v-if="isFileLoaded && !fileLoading">
+      <TabView v-if="isFileLoaded">
         <TabPanel header="Appearance"
           ><AppearanceTab
             ref="appearanceTabRef"
             :hogwartsDB="hogwartsDB"
+            @loading="setLoading"
           ></AppearanceTab>
         </TabPanel>
       </TabView>

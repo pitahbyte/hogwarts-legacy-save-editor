@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Dropdown from 'primevue/dropdown';
-import InputText from 'primevue/inputtext';
+import FeatureRow, { type Feature } from '@/components/FeatureRow.vue';
 import type HogwartsDB from '@/lib/HogwartsDB';
 import type { PropType } from 'vue';
 import { ref } from 'vue';
@@ -10,10 +10,7 @@ interface DropdownOption {
   value: string;
 }
 
-interface DataRow {
-  name: string;
-  value: string;
-}
+const emit = defineEmits(['loading']);
 
 const props = defineProps({
   hogwartsDB: { type: Object as PropType<HogwartsDB>, required: false },
@@ -34,35 +31,49 @@ const genderOptions: DropdownOption[] = [
   },
 ];
 
-const features = ref<DataRow[]>([]);
+const features = ref<Feature[]>([]);
 
-function updateGender() {
+function loadingWrapper(callback: (...args: any[]) => void) {
   if (!props.hogwartsDB) {
     return;
   }
 
-  loading.value = true;
+  emit('loading', true);
   setTimeout(() => {
+    callback();
+    emit('loading', false);
+  }, 500);
+}
+
+function updateAppearance() {
+  loadingWrapper(() => {
+    features.value = props.hogwartsDB!.getAppearance();
+  });
+}
+
+function updateGender() {
+  loadingWrapper(() => {
     const currentGender = props.hogwartsDB!.getGenderSimple().toLowerCase();
     gender.value = genderOptions.find(({ value }: DropdownOption) => {
       return value === currentGender;
     });
-    loading.value = false;
-  }, 500);
+  });
 }
 
 function changeGender() {
   if (props.hogwartsDB && gender.value) {
-    loading.value = true;
-    setTimeout(() => {
-      props.hogwartsDB?.setGender(gender.value?.value);
-      loading.value = false;
-    }, 500);
+    props.hogwartsDB?.setGender(gender.value?.value);
+    updateGender();
   }
 }
 
+function refresh() {
+  updateGender();
+  updateAppearance();
+}
+
 defineExpose({
-  updateGender,
+  refresh,
 });
 </script>
 
@@ -72,44 +83,26 @@ defineExpose({
       <div class="features-container">
         <h2>Features</h2>
         <span v-if="!features.length"><i>No features to show</i></span>
-        <div
-          class="features grid p-fluid"
+        <FeatureRow
           v-for="feature in features"
           :key="feature.name"
-        >
-          <div class="col-12 md:col-4">
-            <div class="p-inputgroup">
-              <span class="p-inputgroup-addon">
-                <i class="pi pi-book"></i>
-              </span>
-              <InputText />
-            </div>
-          </div>
-          <div class="col-12 md:col-4">
-            <div class="p-inputgroup">
-              <span class="p-inputgroup-addon">
-                <i class="pi pi-pencil"></i>
-              </span>
-              <InputText />
-            </div>
-          </div>
-          <div class="col-12 md:col-4"></div>
-        </div>
-      </div>
+          :feature="feature"
+        ></FeatureRow>
 
-      <div class="gender-container grid">
-        <div class="col-4">
-          <div class="field">
-            <h3>Gender</h3>
-            <Dropdown
-              v-model="gender"
-              :options="genderOptions"
-              optionLabel="name"
-              placeholder="Not selected"
-              :loading="loading"
-              :disabled="!hogwartsDB"
-              @change="changeGender"
-            />
+        <div class="gender-container grid">
+          <div class="col-4">
+            <div class="field">
+              <h3>Gender</h3>
+              <Dropdown
+                v-model="gender"
+                :options="genderOptions"
+                optionLabel="name"
+                placeholder="Not selected"
+                :loading="loading"
+                :disabled="!hogwartsDB"
+                @change="changeGender"
+              />
+            </div>
           </div>
         </div>
       </div>
