@@ -2,6 +2,7 @@
 import AppearanceTab from '@/components/AppearanceTab.vue';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
+import HelpDialog from '@/components/HelpDialog.vue';
 // import TabView from 'primevue/tabview';
 // import TabPanel from 'primevue/tabpanel';
 import SaveFile from '@/lib/SaveFile.js';
@@ -17,6 +18,8 @@ const appearanceTabRef = ref<InstanceType<typeof AppearanceTab> | null>(null);
 const isFileLoaded = ref(false);
 
 const fileLoading = ref(false);
+
+const showHelp = ref(false);
 
 function refresh() {
   appearanceTabRef.value!.refresh();
@@ -78,10 +81,20 @@ function downloadSaveFile() {
     promptDownload(dbByteArray, `${saveFile.value.name}`);
   }
 }
+
+function displayHelp() {
+  showHelp.value = true;
+}
+
+function hideDialog() {
+  showHelp.value = false;
+}
 </script>
 
 <template>
   <main class="app grid-nogutter">
+    <HelpDialog :show="showHelp" @hideDialog="hideDialog"></HelpDialog>
+
     <div class="col">
       <nav class="col-12 grid">
         <div class="col-12 sm:col-6 sm:text-left flex">
@@ -102,7 +115,10 @@ function downloadSaveFile() {
             Download Save File
           </Button>
         </div>
-        <div class="col-12 sm:col-2 sm:col-offset-4 text-center sm:text-right">
+        <div class="col-12 sm:col-4 sm:col-offset-2 text-center sm:text-right">
+          <Button @click="displayHelp" class="mr-2" v-tooltip.bottom="'Help'"
+            ><i class="pi pi-question"></i
+          ></Button>
           <Button
             @click="refresh"
             class="mr-2"
@@ -183,6 +199,28 @@ function downloadSaveFile() {
 
   .p-dropdown-item:last-of-type {
     padding-bottom: 0;
+  }
+}
+
+.p-dialog-content {
+  code {
+    color: salmon;
+    background-color: rgb(230, 230, 230);
+    display: inline-block;
+    padding: 0 4px;
+    border-radius: 4px;
+  }
+  u {
+    color: red;
+    font-weight: bold;
+  }
+
+  .p-fileupload {
+    display: inline-block;
+  }
+
+  .p-button {
+    pointer-events: none;
   }
 }
 

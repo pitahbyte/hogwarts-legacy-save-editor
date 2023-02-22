@@ -159,6 +159,7 @@ defineExpose({
           <FileUpload
             mode="basic"
             name="importAppearance"
+            accept=".json"
             auto
             @uploader="importValues"
             customUpload
