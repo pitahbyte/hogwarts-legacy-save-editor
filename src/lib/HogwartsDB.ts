@@ -7,11 +7,6 @@ let Sql: initSqlJs.SqlJsStatic;
   Sql = await initSqlJs({ locateFile: () => sqlWasm });
 })();
 
-interface Misc {
-  DataName: string;
-  DataValue: string;
-}
-
 const Tables = {
   Misc: 'MiscDataDynamic',
   Avatar: 'AvatarFullBodyDynamic',
