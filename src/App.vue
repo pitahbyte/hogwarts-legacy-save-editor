@@ -3,6 +3,7 @@ import AppearanceTab from '@/components/AppearanceTab.vue';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import HelpDialog from '@/components/HelpDialog.vue';
+import Card from 'primevue/card';
 // import TabView from 'primevue/tabview';
 // import TabPanel from 'primevue/tabpanel';
 import SaveFile from '@/lib/SaveFile.js';
@@ -145,10 +146,38 @@ function hideDialog() {
         </div>
       </div>
     </div>
+    <Card class="disclaimer-card m-2 py-2 px-3">
+      <template #header>
+        <h3>⚠ Disclaimer ⚠</h3>
+      </template>
+      <template #content>
+        <ul>
+          <li>
+            I will not be responsible for any loss of save files or save file
+            corruption.
+          </li>
+          <li>
+            Hogwarts Legacy brand and name is the registered trademark of its
+            respective owner.
+          </li>
+          <li>
+            hogwarts-legacy-save-editor has no partnership, sponsorship or
+            endorsement with Avalanche Software or Warner Bros. Games.
+          </li>
+        </ul>
+      </template>
+    </Card>
   </main>
 </template>
 
 <style scoped lang="scss">
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -221,6 +250,14 @@ function hideDialog() {
 
   .p-button {
     pointer-events: none;
+  }
+}
+
+.disclaimer-card.p-card {
+  background-color: var(--red-200);
+
+  .p-card-header {
+    margin-top: 1rem;
   }
 }
 
