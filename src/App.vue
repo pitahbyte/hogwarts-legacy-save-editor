@@ -4,8 +4,6 @@ import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import HelpDialog from '@/components/HelpDialog.vue';
 import Card from 'primevue/card';
-// import TabView from 'primevue/tabview';
-// import TabPanel from 'primevue/tabpanel';
 import SaveFile from '@/lib/SaveFile.js';
 import HogwartsDB from '@/lib/HogwartsDB';
 import { nextTick, ref } from 'vue';
@@ -84,7 +82,11 @@ function downloadSaveFile() {
 }
 
 function displayHelp() {
-  showHelp.value = true;
+  // showHelp.value = true;
+  window.open(
+    'https://github.com/pitahbyte/hogwarts-legacy-save-editor#readme',
+    '_blank'
+  );
 }
 
 function hideDialog() {
