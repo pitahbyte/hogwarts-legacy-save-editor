@@ -19,3 +19,8 @@ You can import or export an apperance from the currently loaded save file.This i
 * I will not be responsible for any possibility of save corruption.
 * Hogwarts Legacy brand and name is the registered trademark of its respective owner.
 * hogwarts-legacy-save-editor has no partnership, sponsorship or endorsement with Avalanche Software or Warner Bros. Games.
+
+### Credits
+
+* [Sorrow446](https://www.nexusmods.com/hogwartslegacy/users/103681173)
+
